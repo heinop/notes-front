@@ -9,12 +9,9 @@ import LoginForm from './components/LoginForm'
 import NoteForm from './components/NoteForm'
 
 const App = () => {
-  const [loginVisible, setLoginVisible] = useState(false)
   const [notes, setNotes] = useState([])
   const [showAll, setShowAll] = useState(true)
   const [errorMessage, setErrorMessage] = useState(null)
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
 
   useEffect(() => {
@@ -33,6 +30,10 @@ const App = () => {
       noteService.setToken(user.token)
     }
   }, [])
+
+  const notesToShow = showAll
+    ? notes
+    : notes.filter(note => note.important)
 
   const addNote = (noteObject) => {
     noteService
@@ -63,19 +64,11 @@ const App = () => {
       })
   }
 
-  const notesToShow = showAll
-    ? notes
-    : notes.filter(note => note.important)
-
-  const handleLogin = async (event) => {
-    event.preventDefault()
-
+  const handleLogin = async ({ username, password }) => {
     try {
       const user = await loginService.login({ username, password })
       window.localStorage.setItem('loggedNoteAppUser', JSON.stringify(user))
       setUser(user)
-      setUsername('')
-      setPassword('')
     } catch (exception) {
       setErrorMessage('wrong credentials')
       setTimeout(() => {
@@ -92,29 +85,6 @@ const App = () => {
     noteService.setToken(null)
   }
 
-  const loginForm = () => {
-    const hideWhenVisible = { display: loginVisible ? 'none' : '' }
-    const showWhenVisible = { display: loginVisible ? '' : 'none' }
-
-    return (
-      <div>
-        <div style={hideWhenVisible}>
-          <button onClick={() => setLoginVisible(true)}>log in</button>
-        </div>
-        <div style={showWhenVisible}>
-          <LoginForm
-            username={username}
-            password={password}
-            handleUsernameChange={({ target }) => setUsername(target.value)}
-            handlePasswordChange={({ target }) => setPassword(target.value)}
-            handleSubmit={handleLogin}
-          />
-          <button onClick={() => setLoginVisible(false)}>cancel</button>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div>
       <h1>Notes</h1>
@@ -123,13 +93,7 @@ const App = () => {
 
       {user === null ?
         <Togglable buttonLabel='login'>
-          <LoginForm  
-            username={username}
-            password={password}
-            handleUsernameChange={({ target }) => setUsername(target.value)}
-            handlePasswordChange={({ target }) => setPassword(target.value)}
-            handleSubmit={handleLogin}
-          />
+          <LoginForm handleLogin={handleLogin} />
         </Togglable> :
         <div>
           <p>
