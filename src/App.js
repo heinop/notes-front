@@ -71,6 +71,7 @@ const App = () => {
       const user = await loginService.login({ username, password })
       window.localStorage.setItem('loggedNoteAppUser', JSON.stringify(user))
       setUser(user)
+      noteService.setToken(user.token)
     } catch (exception) {
       setErrorMessage('wrong credentials')
       setTimeout(() => {
@@ -126,9 +127,9 @@ const App = () => {
         </button>
       </div>
       <ul>
-        {notesToShow.map(note =>
+        {notesToShow.map((note, i) =>
           <Note
-            key={note.id}
+            key={i}
             note={note}
             toggleImportance={() => toggleImportanceOf(note.id)}
           />
